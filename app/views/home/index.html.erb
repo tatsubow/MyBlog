@@ -1,3 +1,15 @@
+<%= render 'home/partials/nn_loader' %>
+
+<script>
+  window.addEventListener('load', function() {
+    // 少し待ってから消す
+    setTimeout(function() {
+      // 念のため関数が存在するかチェックしてから実行
+      window.hideNNLoader();
+    }, 2000); // 1.5秒後に実行
+  });
+</script>
+
 <div class="min-h-screen bg-gray-900 text-white font-sans">
 
   <nav class="w-full p-6 flex justify-between items-center bg-gray-800 shadow-md">
