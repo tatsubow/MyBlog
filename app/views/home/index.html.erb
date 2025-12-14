@@ -1,18 +1,36 @@
 <%= render 'home/partials/nn_loader' %>
 
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
 <script>
+  document.body.style.overflow = 'hidden';
   window.addEventListener('load', function() {
-    // 少し待ってから消す
+    // ローディング画面の処理
     setTimeout(function() {
-      // 念のため関数が存在するかチェックしてから実行
-      window.hideNNLoader();
-    }, 2000); // 1.5秒後に実行
+      if (typeof window.hideNNLoader === 'function') {
+        window.hideNNLoader();
+      }
+      
+      document.body.style.overflow = 'auto';
+
+      // 2. ローダーが消えるタイミングでAOS（スクロールアニメ）を初期化・開始
+      //    offset: 発火するスクロール位置（ピクセル）
+      //    duration: アニメーションの時間（ミリ秒）
+      //    once: 一度だけアニメーションするかどうか
+      AOS.init({
+        offset: 100,
+        duration: 800,
+        easing: 'ease-out-cubic',
+        once: true 
+      });
+      
+    }, 2500); // ローディング待ち時間
   });
 </script>
 
-<div class="min-h-screen bg-gray-900 text-white font-sans">
+<div class="min-h-screen bg-gray-900 text-white font-sans overflow-x-hidden">
 
-  <nav class="w-full p-6 flex justify-between items-center bg-gray-800 shadow-md">
+  <nav class="w-full p-6 flex justify-between items-center bg-gray-800 shadow-md sticky top-0 z-50" data-aos="fade-down" data-aos-delay="400">
     <div class="text-2xl font-bold text-purple-400">
       My Portfolio
     </div>
@@ -24,20 +42,22 @@
     </div>
   </nav>
 
-  <div class="container mx-auto px-6 py-20 flex flex-col-reverse md:flex-row items-center">
+  <div class="container mx-auto px-6 py-20 flex flex-col-reverse md:flex-row items-center min-h-[80vh]">
     
     <div class="md:w-1/2 text-center md:text-left">
-      <h1 class="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+      <h1 class="text-5xl md:text-6xl font-bold mb-6 leading-tight" data-aos="fade-right" data-aos-delay="200">
         Railsでつくる<br>
         <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
           最高のWeb体験
         </span>
       </h1>
-      <p class="text-lg text-gray-400 mb-8">
+      
+      <p class="text-lg text-gray-400 mb-8" data-aos="fade-right" data-aos-delay="400">
         Tailwind CSSを使えば、デザインセンスがなくても<br>
         ここまでそれっぽいサイトが一瞬で作れます。
       </p>
-      <div class="flex justify-center md:justify-start space-x-4">
+      
+      <div class="flex justify-center md:justify-start space-x-4" data-aos="fade-up" data-aos-delay="400">
         <a href="#" class="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full font-bold hover:shadow-lg hover:scale-105 transition transform">
           もっと見る
         </a>
@@ -48,9 +68,42 @@
     </div>
 
     <div class="md:w-1/2 mb-10 md:mb-0 flex justify-center">
-      <div class="w-64 h-64 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-3xl rotate-6 shadow-2xl hover:rotate-12 transition duration-500"></div>
+      <div class="w-64 h-64 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-3xl rotate-6 shadow-2xl hover:rotate-12 transition duration-500" data-aos="zoom-in" data-aos-delay="400"></div>
     </div>
 
   </div>
 
-</div>
+  <div class="bg-gray-800 py-20">
+    <div class="container mx-auto px-6">
+      <h2 class="text-3xl font-bold text-center mb-12" data-aos="fade-up">
+        スクロールしてみてください
+      </h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="p-6 bg-gray-900 rounded-xl shadow-lg border border-gray-700 hover:border-purple-500 transition" data-aos="fade-up" data-aos-delay="0">
+          <div class="text-4xl mb-4">🚀</div>
+          <h3 class="text-xl font-bold mb-2">High Performance</h3>
+          <p class="text-gray-400">Rails 7とTurboを使えば、SPAのような高速な画面遷移が可能です。</p>
+        </div>
+
+        <div class="p-6 bg-gray-900 rounded-xl shadow-lg border border-gray-700 hover:border-purple-500 transition" data-aos="fade-up" data-aos-delay="100">
+          <div class="text-4xl mb-4">🎨</div>
+          <h3 class="text-xl font-bold mb-2">Beautiful Design</h3>
+          <p class="text-gray-400">Tailwind CSSにより、CSSファイルを行き来することなくスタイリングできます。</p>
+        </div>
+
+        <div class="p-6 bg-gray-900 rounded-xl shadow-lg border border-gray-700 hover:border-purple-500 transition" data-aos="fade-up" data-aos-delay="200">
+          <div class="text-4xl mb-4">📱</div>
+          <h3 class="text-xl font-bold mb-2">Mobile First</h3>
+          <p class="text-gray-400">レスポンシブデザインもクラス名をプレフィックスにつけるだけで簡単です。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="h-96 flex items-center justify-center">
+    <p class="text-gray-500" data-aos="fade-in">もっとスクロール...</p>
+  </div>
+  </div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>

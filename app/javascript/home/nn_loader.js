@@ -219,64 +219,100 @@
     }
   }
 
+  let isInitialized = false;
+
   function init() {
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
-    
-    layers.length = 0;
-    signals.length = 0;
-    frameCount = 0;
+
+    // ※ここにあった layers.length=0 や frameCount=0 を削除しました
 
     const totalLayersCount = 2 + middleLayerCounts.length;
-    const paddingX = width * 0.25;
-    const drawWidth = width - (paddingX * 2);
+    const paddingLeft = width * 0.35; // 左右の余白
+    const paddingRight = width * 0.25;
+    const drawWidth = width - (paddingLeft + paddingRight);
     const layerSpacing = drawWidth / (totalLayersCount - 1);
 
-    // 1. 入力層
-    const inputLayer = [];
-    const inputSpacing = height / (inputLabels.length + 1);
-    inputLabels.forEach((label, i) => {
-      inputLayer.push(new Node(paddingX, inputSpacing * (i + 1), label, 'input'));
-    });
-    layers.push(inputLayer);
+    // ■ ノードの作成（初回のみ実行）
+    if (!isInitialized) {
+      layers.length = 0;
+      signals.length = 0;
+      frameCount = 0;
 
-    // 2. 中間層
-    middleLayerCounts.forEach((count, i) => {
-      const middleLayer = [];
-      const x = paddingX + layerSpacing * (i + 1);
-      const spacing = height / (count + 1);
-      for (let j = 0; j < count; j++) {
-        middleLayer.push(new Node(x, spacing * (j + 1), null, 'middle'));
-      }
-      layers.push(middleLayer);
-    });
+      // 1. 入力層作成
+      const inputLayer = [];
+      inputLabels.forEach((label, i) => {
+        inputLayer.push(new Node(0, 0, label, 'input')); // 座標は後でセット
+      });
+      layers.push(inputLayer);
 
-    // 3. 出力層
-    const outputLayer = [];
-    const outputSpacing = height / (outputLabels.length + 1);
-    const outputX = paddingX + layerSpacing * (totalLayersCount - 1);
-    outputLabels.forEach((label, i) => {
-      outputLayer.push(new Node(outputX, outputSpacing * (i + 1), label, 'output'));
-    });
-    layers.push(outputLayer);
+      // 2. 中間層作成
+      middleLayerCounts.forEach((count) => {
+        const middleLayer = [];
+        for (let j = 0; j < count; j++) {
+          middleLayer.push(new Node(0, 0, null, 'middle'));
+        }
+        layers.push(middleLayer);
+      });
 
-    // 4. 接続
-    for (let i = 0; i < layers.length - 1; i++) {
-      const current = layers[i];
-      const next = layers[i+1];
-      current.forEach(node => {
-        next.forEach(target => {
-          if (node.type === 'input' || Math.random() > 0.3) {
-            const weight = (Math.random() * 2.0) - 0.5;
-            node.nextNodes.push({ target: target, weight: weight });
+      // 3. 出力層作成
+      const outputLayer = [];
+      outputLabels.forEach((label, i) => {
+        outputLayer.push(new Node(0, 0, label, 'output'));
+      });
+      layers.push(outputLayer);
+
+      // 4. 接続（初回のみ）
+      for (let i = 0; i < layers.length - 1; i++) {
+        const current = layers[i];
+        const next = layers[i+1];
+        current.forEach(node => {
+          next.forEach(target => {
+            if (node.type === 'input' || Math.random() > 0.3) {
+              const weight = (Math.random() * 2.0) - 0.5;
+              node.nextNodes.push({ target: target, weight: weight });
+            }
+          });
+          // 孤立防止
+          if (node.nextNodes.length === 0) {
+            const target = next[Math.floor(Math.random() * next.length)];
+            node.nextNodes.push({ target: target, weight: 1.0 });
           }
         });
-        if (node.nextNodes.length === 0) {
-          const target = next[Math.floor(Math.random() * next.length)];
-          node.nextNodes.push({ target: target, weight: 1.0 });
-        }
-      });
+      }
+
+      isInitialized = true;
     }
+
+    // ■ 座標の更新（初回もリサイズ時も毎回実行）
+    // これにより、アニメーション状態を維持したままノードだけ移動します
+    
+    // 1. 入力層の座標更新
+    const inputSpacing = height / (inputLabels.length + 1);
+    layers[0].forEach((node, i) => {
+      node.x = paddingLeft;
+      node.y = inputSpacing * (i + 1);
+    });
+
+    // 2. 中間層の座標更新
+    let currentLayerIndex = 1;
+    middleLayerCounts.forEach((count) => {
+      const x = paddingLeft + layerSpacing * currentLayerIndex;
+      const spacing = height / (count + 1);
+      layers[currentLayerIndex].forEach((node, j) => {
+        node.x = x;
+        node.y = spacing * (j + 1);
+      });
+      currentLayerIndex++;
+    });
+
+    // 3. 出力層の座標更新
+    const outputSpacing = height / (outputLabels.length + 1);
+    const outputX = paddingLeft + layerSpacing * (totalLayersCount - 1);
+    layers[layers.length - 1].forEach((node, i) => {
+      node.x = outputX;
+      node.y = outputSpacing * (i + 1);
+    });
   }
 
   function handleSequence() {
