@@ -235,6 +235,8 @@
 
     // ※ここにあった layers.length=0 や frameCount=0 を削除しました
     if (width < 600) {
+      fontSize = 6;
+    } else if (width < 900) {
       fontSize = 10;
     } else if (width < 1200) {
       fontSize = 15;
