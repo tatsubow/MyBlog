@@ -8,10 +8,18 @@
   let frameCount = 0;
 
   // --- データ定義 ---
-  const inputLabels = [
+  const inputLabelsPC = [
     "Keio University",
     "Faculty of Sci. & Tech.",
     "Elec. & Info. Eng.",
+    "Keio Computer Society",
+    "Gifu"
+  ];
+
+  const inputLabelsMobile = [
+    "Keio",     
+    "Sci&Tech", 
+    "EIE",      
     "KCS",
     "Gifu"
   ];
@@ -101,19 +109,16 @@
 
       // 3. ラベル
       if (this.label) {
-        ctx.font = '20px "Courier New", monospace';
+        ctx.font = `${fontSize}px "Courier New", monospace`;
         
         // ラベルも出力ノードはずっと光る
         const isTextLit = (this.type === 'output' && this.hasActivated) || this.activation > 0.1;
 
         if (isTextLit) {
           ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 20px "Courier New", monospace';
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = (this.type === 'output') ? colors.nodeOutput : colors.nodeInput;
+          ctx.font = `bold ${fontSize}px "Courier New", monospace`;
         } else {
           ctx.fillStyle = colors.textBase;
-          ctx.shadowBlur = 0;
         }
 
         // 出力ノードのタイプライターアニメーション処理と初期非表示
@@ -137,7 +142,7 @@
           ctx.fillText(this.label, this.x - 15, this.y + 4);
         } else if (this.type === 'output' && isOutputNodeReadyToDraw) { // 描画フラグをチェック
           ctx.textAlign = 'left';
-          ctx.font = 'bold 20px "Courier New", monospace';
+          ctx.font = `bold ${fontSize}px "Courier New", monospace`;
           ctx.fillText(displayedText, this.x + 15, this.y + 5); 
         }
       }
@@ -219,64 +224,110 @@
     }
   }
 
+  let isInitialized = false;
+
   function init() {
     width = canvas.width = window.innerWidth;
     height = canvas.height = window.innerHeight;
-    
-    layers.length = 0;
-    signals.length = 0;
-    frameCount = 0;
+
+    // ※ここにあった layers.length=0 や frameCount=0 を削除しました
+    if (width < 600) {
+      fontSize = 12;
+    } else if (width < 900) {
+      fontSize = 10;
+    } else if (width < 1200) {
+      fontSize = 15;
+    } else {
+      fontSize = 20;
+    }
+
+    const inputLabels = (width < 600) ? inputLabelsMobile : inputLabelsPC;
 
     const totalLayersCount = 2 + middleLayerCounts.length;
     const paddingX = width * 0.25;
     const drawWidth = width - (paddingX * 2);
     const layerSpacing = drawWidth / (totalLayersCount - 1);
 
-    // 1. 入力層
-    const inputLayer = [];
-    const inputSpacing = height / (inputLabels.length + 1);
-    inputLabels.forEach((label, i) => {
-      inputLayer.push(new Node(paddingX, inputSpacing * (i + 1), label, 'input'));
-    });
-    layers.push(inputLayer);
+    // ■ ノードの作成（初回のみ実行）
+    if (!isInitialized) {
+      layers.length = 0;
+      signals.length = 0;
+      frameCount = 0;
 
-    // 2. 中間層
-    middleLayerCounts.forEach((count, i) => {
-      const middleLayer = [];
-      const x = paddingX + layerSpacing * (i + 1);
-      const spacing = height / (count + 1);
-      for (let j = 0; j < count; j++) {
-        middleLayer.push(new Node(x, spacing * (j + 1), null, 'middle'));
-      }
-      layers.push(middleLayer);
-    });
+      // 1. 入力層作成
+      const inputLayer = [];
+      inputLabels.forEach((label, i) => {
+        inputLayer.push(new Node(0, 0, label, 'input')); // 座標は後でセット
+      });
+      layers.push(inputLayer);
 
-    // 3. 出力層
-    const outputLayer = [];
-    const outputSpacing = height / (outputLabels.length + 1);
-    const outputX = paddingX + layerSpacing * (totalLayersCount - 1);
-    outputLabels.forEach((label, i) => {
-      outputLayer.push(new Node(outputX, outputSpacing * (i + 1), label, 'output'));
-    });
-    layers.push(outputLayer);
+      // 2. 中間層作成
+      middleLayerCounts.forEach((count) => {
+        const middleLayer = [];
+        for (let j = 0; j < count; j++) {
+          middleLayer.push(new Node(0, 0, null, 'middle'));
+        }
+        layers.push(middleLayer);
+      });
 
-    // 4. 接続
-    for (let i = 0; i < layers.length - 1; i++) {
-      const current = layers[i];
-      const next = layers[i+1];
-      current.forEach(node => {
-        next.forEach(target => {
-          if (node.type === 'input' || Math.random() > 0.3) {
-            const weight = (Math.random() * 2.0) - 0.5;
-            node.nextNodes.push({ target: target, weight: weight });
+      // 3. 出力層作成
+      const outputLayer = [];
+      outputLabels.forEach((label, i) => {
+        outputLayer.push(new Node(0, 0, label, 'output'));
+      });
+      layers.push(outputLayer);
+
+      // 4. 接続（初回のみ）
+      for (let i = 0; i < layers.length - 1; i++) {
+        const current = layers[i];
+        const next = layers[i+1];
+        current.forEach(node => {
+          next.forEach(target => {
+            if (node.type === 'input' || Math.random() > 0.3) {
+              const weight = (Math.random() * 2.0) - 0.5;
+              node.nextNodes.push({ target: target, weight: weight });
+            }
+          });
+          // 孤立防止
+          if (node.nextNodes.length === 0) {
+            const target = next[Math.floor(Math.random() * next.length)];
+            node.nextNodes.push({ target: target, weight: 1.0 });
           }
         });
-        if (node.nextNodes.length === 0) {
-          const target = next[Math.floor(Math.random() * next.length)];
-          node.nextNodes.push({ target: target, weight: 1.0 });
-        }
-      });
+      }
+
+      isInitialized = true;
     }
+
+    // ■ 座標の更新（初回もリサイズ時も毎回実行）
+    // これにより、アニメーション状態を維持したままノードだけ移動します
+    
+    // 1. 入力層の座標更新
+    const inputSpacing = height / (inputLabels.length + 1);
+    layers[0].forEach((node, i) => {
+      node.x = paddingX;
+      node.y = inputSpacing * (i + 1);
+    });
+
+    // 2. 中間層の座標更新
+    let currentLayerIndex = 1;
+    middleLayerCounts.forEach((count) => {
+      const x = paddingX + layerSpacing * currentLayerIndex;
+      const spacing = height / (count + 1);
+      layers[currentLayerIndex].forEach((node, j) => {
+        node.x = x;
+        node.y = spacing * (j + 1);
+      });
+      currentLayerIndex++;
+    });
+
+    // 3. 出力層の座標更新
+    const outputSpacing = height / (outputLabels.length + 1);
+    const outputX = paddingX + layerSpacing * (totalLayersCount - 1);
+    layers[layers.length - 1].forEach((node, i) => {
+      node.x = outputX;
+      node.y = outputSpacing * (i + 1);
+    });
   }
 
   function handleSequence() {

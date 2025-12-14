@@ -1,36 +1,23 @@
-<%# 必要なデータをERBの変数として受け取ることを想定（例: input_labels, output_labels, middle_layers） %>
-<% 
-  # デフォルト値を設定
-  input_labels ||= ["Keio University", "Faculty of Sci. & Tech.", "Elec. & Info. Eng.", "KCS", "Gifu"]
-  output_labels ||= ["tatsubow", "RPG8"]
-  middle_layers ||= [6, 10, 6] 
-%>
-
 <div id="nn-loader-overlay" 
-     class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gray-900 transition-opacity duration-700 overflow-hidden"
-     
-     <%# 【データ設定を分離】 data-属性としてJSON形式でデータを渡す %>
-     data-input-labels="<%= input_labels.to_json %>"
-     data-output-labels="<%= output_labels.to_json %>"
-     data-middle-layers="<%= middle_layers.to_json %>"
->
+     class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gray-900 transition-opacity duration-700 overflow-hidden">
+     <%# data- 属性も全部削除しました %>
     
-    <%# 1. 背景のグリッドパターン (UI要素) %>
+    <%# 1. 背景のグリッドパターン %>
     <div class="absolute inset-0 opacity-20 pointer-events-none" 
          style="background-image: linear-gradient(#4f46e5 1px, transparent 1px), linear-gradient(90deg, #4f46e5 1px, transparent 1px); background-size: 50px 50px; mask-image: radial-gradient(circle, black 30%, transparent 80%);">
     </div>
 
-    <%# 2. Canvas要素 (UI要素) %>
+    <%# 2. Canvas要素 %>
     <canvas id="nn-canvas" class="absolute inset-0 block"></canvas>
 
-    <%# 3. ローディングテキスト (UI要素) %>
-    <div class="absolute bottom-1/3 text-center pointer-events-none select-none mix-blend-screen w-full">
-        <div id="loading-status" class="text-cyan-400 font-mono text-xl tracking-[0.3em]">
-            LOADING PROFILE...
+    <%# 3. ローディングテキスト %>
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none mix-blend-screen">
+        <%# text-xs md:text-xl に書き換えた部分 %>
+        <div id="loading-status" class="text-cyan-400 font-mono text-xs md:text-xl tracking-[0.3em]">
+            LOADING PROFILE
         </div>
     </div>
 </div>
 
-<%# 【JSロジックの分離】 外部JavaScriptファイルを読み込む %>
-<%# パスを 'home/nn_loader' に変更しました %>
+<%# JS読み込み %>
 <%= javascript_include_tag "home/nn_loader", "data-turbo-track": "reload", defer: true %>
