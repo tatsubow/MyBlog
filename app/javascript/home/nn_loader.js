@@ -8,10 +8,18 @@
   let frameCount = 0;
 
   // --- データ定義 ---
-  const inputLabels = [
+  const inputLabelsPC = [
     "Keio University",
     "Faculty of Sci. & Tech.",
     "Elec. & Info. Eng.",
+    "KCS",
+    "Gifu"
+  ];
+
+  const inputLabelsMobile = [
+    "Keio",     
+    "Sci&Tech", 
+    "EIE",      
     "KCS",
     "Gifu"
   ];
@@ -101,14 +109,14 @@
 
       // 3. ラベル
       if (this.label) {
-        ctx.font = '20px "Courier New", monospace';
+        ctx.font = `${fontSize}px "Courier New", monospace`;
         
         // ラベルも出力ノードはずっと光る
         const isTextLit = (this.type === 'output' && this.hasActivated) || this.activation > 0.1;
 
         if (isTextLit) {
           ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 20px "Courier New", monospace';
+          ctx.font = `bold ${fontSize}px "Courier New", monospace`;
           ctx.shadowBlur = 10;
           ctx.shadowColor = (this.type === 'output') ? colors.nodeOutput : colors.nodeInput;
         } else {
@@ -137,7 +145,7 @@
           ctx.fillText(this.label, this.x - 15, this.y + 4);
         } else if (this.type === 'output' && isOutputNodeReadyToDraw) { // 描画フラグをチェック
           ctx.textAlign = 'left';
-          ctx.font = 'bold 20px "Courier New", monospace';
+          ctx.font = `bold ${fontSize}px "Courier New", monospace`;
           ctx.fillText(displayedText, this.x + 15, this.y + 5); 
         }
       }
@@ -226,11 +234,19 @@
     height = canvas.height = window.innerHeight;
 
     // ※ここにあった layers.length=0 や frameCount=0 を削除しました
+    if (width < 600) {
+      fontSize = 10;
+    } else if (width < 1200) {
+      fontSize = 15;
+    } else {
+      fontSize = 20;
+    }
+
+    const inputLabels = (width < 600) ? inputLabelsMobile : inputLabelsPC;
 
     const totalLayersCount = 2 + middleLayerCounts.length;
-    const paddingLeft = width * 0.35; // 左右の余白
-    const paddingRight = width * 0.25;
-    const drawWidth = width - (paddingLeft + paddingRight);
+    const paddingX = width * 0.25;
+    const drawWidth = width - (paddingX * 2);
     const layerSpacing = drawWidth / (totalLayersCount - 1);
 
     // ■ ノードの作成（初回のみ実行）
@@ -290,14 +306,14 @@
     // 1. 入力層の座標更新
     const inputSpacing = height / (inputLabels.length + 1);
     layers[0].forEach((node, i) => {
-      node.x = paddingLeft;
+      node.x = paddingX;
       node.y = inputSpacing * (i + 1);
     });
 
     // 2. 中間層の座標更新
     let currentLayerIndex = 1;
     middleLayerCounts.forEach((count) => {
-      const x = paddingLeft + layerSpacing * currentLayerIndex;
+      const x = paddingX + layerSpacing * currentLayerIndex;
       const spacing = height / (count + 1);
       layers[currentLayerIndex].forEach((node, j) => {
         node.x = x;
@@ -308,7 +324,7 @@
 
     // 3. 出力層の座標更新
     const outputSpacing = height / (outputLabels.length + 1);
-    const outputX = paddingLeft + layerSpacing * (totalLayersCount - 1);
+    const outputX = paddingX + layerSpacing * (totalLayersCount - 1);
     layers[layers.length - 1].forEach((node, i) => {
       node.x = outputX;
       node.y = outputSpacing * (i + 1);
