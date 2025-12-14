@@ -12,7 +12,7 @@
     "Keio University",
     "Faculty of Sci. & Tech.",
     "Elec. & Info. Eng.",
-    "KCS",
+    "Keio Computer Society",
     "Gifu"
   ];
 
@@ -117,11 +117,8 @@
         if (isTextLit) {
           ctx.fillStyle = '#ffffff';
           ctx.font = `bold ${fontSize}px "Courier New", monospace`;
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = (this.type === 'output') ? colors.nodeOutput : colors.nodeInput;
         } else {
           ctx.fillStyle = colors.textBase;
-          ctx.shadowBlur = 0;
         }
 
         // 出力ノードのタイプライターアニメーション処理と初期非表示
